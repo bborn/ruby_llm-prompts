@@ -14,11 +14,16 @@ module RubyLLM
       def render(variables = {})
         template = Liquid::Template.parse(body)
         coerced = coerce_variables(variables)
-        if RubyLLM::Prompts.strict_variables
+        result = if RubyLLM::Prompts.strict_variables
           template.render!(coerced, strict_variables: true)
         else
           template.render(coerced)
         end
+
+        ActiveSupport::Notifications.instrument("render_prompt.ruby_llm_prompts",
+          slug: slug, version: version, metadata: metadata)
+
+        result
       rescue Liquid::UndefinedVariable => e
         raise UndefinedVariableError, "#{e.message} in prompt '#{slug}' (v#{version}). Expected variables: #{expected_variables.join(", ")}"
       end

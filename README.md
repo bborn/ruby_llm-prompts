@@ -222,21 +222,19 @@ prompt.new_version!(body: "...", metadata: ...) # create new version
 prompt.rollback!                                # restore previous version
 ```
 
-## Tracking LLM Usage by Prompt Version
+## Tracking Usage
 
-If you use [ruby_llm-instrumentation](https://github.com/sinaptia/ruby_llm-instrumentation), tag completions with the prompt slug and version:
+Every render emits a `render_prompt.ruby_llm_prompts` notification with `slug`, `version`, and `metadata`. Subscribe to connect prompts to whatever tracking you use:
 
 ```ruby
-prompt = RubyLLM::Prompts.get("support/system")
-rendered = prompt.render(company: "Acme", name: "Bruno")
-
-RubyLLM::Instrumentation.with(prompt_slug: prompt.slug, prompt_version: prompt.version) do
-  chat.with_instructions(rendered)
-  chat.ask("I can't log in")
+ActiveSupport::Notifications.subscribe("render_prompt.ruby_llm_prompts") do |*, payload|
+  # payload[:slug]     => "support/system"
+  # payload[:version]  => 2
+  # payload[:metadata] => {"author" => "bruno"}
 end
 ```
 
-This metadata flows into [ruby_llm-monitoring](https://github.com/sinaptia/ruby_llm-monitoring) events, so you can compare cost, latency, and error rates across prompt versions.
+This works for both direct `render` calls and transparent agent integration.
 
 ## Auditing
 

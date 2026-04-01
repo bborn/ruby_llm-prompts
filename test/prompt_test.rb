@@ -99,6 +99,35 @@ class PromptTest < Minitest::Test
     assert_equal "", prompt.render(vip: nil)
   end
 
+  def test_render_emits_notification
+    prompt = create_prompt(slug: "notify/test", body: "Hello {{ name }}")
+    events = []
+
+    callback = lambda { |*, payload| events << payload }
+    ActiveSupport::Notifications.subscribe("render_prompt.ruby_llm_prompts", callback)
+
+    prompt.render(name: "Bruno")
+
+    assert_equal 1, events.size
+    assert_equal "notify/test", events.first[:slug]
+    assert_equal 1, events.first[:version]
+  ensure
+    ActiveSupport::Notifications.unsubscribe(callback)
+  end
+
+  def test_render_notification_not_emitted_on_error
+    prompt = create_prompt(body: "{{ name }}")
+    events = []
+
+    callback = lambda { |*, payload| events << payload }
+    ActiveSupport::Notifications.subscribe("render_prompt.ruby_llm_prompts", callback)
+
+    assert_raises(RubyLLM::Prompts::UndefinedVariableError) { prompt.render({}) }
+    assert_empty events
+  ensure
+    ActiveSupport::Notifications.unsubscribe(callback)
+  end
+
   def test_version_uniqueness
     create_prompt(slug: "test/prompt", body: "v1", version: 1)
     assert_raises(ActiveRecord::RecordInvalid) do
