@@ -1,0 +1,8 @@
+slug: welcome/instructions
+body: |
+  You are a helpful assistant for {{ user_name }}.
+  Today is {{ current_date }}.
+  Be concise and accurate.
+metadata:
+  description: "Welcome prompt for testing"
+  author: "test"

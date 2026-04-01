@@ -1,0 +1,28 @@
+<h1>Test: <%= @prompt.slug %></h1>
+
+<%= form_tag playground_run_path(slug: @prompt.slug), method: :post do %>
+  <fieldset>
+    <legend>Prompt Variables</legend>
+    <% @variables.each do |var| %>
+      <div style="margin-bottom: 0.5rem;">
+        <label for="<%= var %>"><strong><%= var %></strong></label><br>
+        <input type="text" name="<%= var %>" id="<%= var %>" value="<%= @values[var] %>" style="width: 400px;">
+      </div>
+    <% end %>
+    <% if @variables.empty? %>
+      <p><em>This prompt has no variables.</em></p>
+    <% end %>
+  </fieldset>
+
+  <fieldset style="margin-top: 1rem;">
+    <legend>User Message</legend>
+    <textarea name="user_message" rows="3" style="width: 400px;" placeholder="Hello!"></textarea>
+  </fieldset>
+
+  <div style="margin-top: 1rem;">
+    <button type="submit">Send to LLM</button>
+  </div>
+<% end %>
+
+<h3>Prompt Body (Liquid)</h3>
+<pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px;"><%= @prompt.body %></pre>

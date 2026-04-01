@@ -1,0 +1,7 @@
+slug: example/instructions
+body: |
+  You are a helpful assistant for {{ user_name }}.
+  Today is {{ current_date }}.
+  Be concise and accurate.
+metadata:
+  description: "Example prompt — edit or delete this file"

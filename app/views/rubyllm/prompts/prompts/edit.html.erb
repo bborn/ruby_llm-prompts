@@ -1,0 +1,3 @@
+<h2>Edit: <span class="mono"><%= @prompt.slug %></span></h2>
+<p class="meta">Saving will create version <%= @prompt.version + 1 %>.</p>
+<%= render "form", prompt: @prompt, url: prompt_path(@prompt.slug), method: :patch %>

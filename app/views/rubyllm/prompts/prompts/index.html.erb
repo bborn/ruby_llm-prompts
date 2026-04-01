@@ -1,0 +1,34 @@
+<table>
+  <thead>
+    <tr>
+      <th>Slug</th>
+      <th>Version</th>
+      <th>Variables</th>
+      <th>Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @prompts.each do |prompt| %>
+      <tr>
+        <td class="mono"><%= link_to prompt.slug, prompt_path(prompt.slug) %></td>
+        <td><span class="version-badge version-active">v<%= prompt.version %></span></td>
+        <td>
+          <div class="variables">
+            <% prompt.expected_variables.each do |var| %>
+              <span class="variable-tag"><%= var %></span>
+            <% end %>
+          </div>
+        </td>
+        <td class="meta"><%= time_ago_in_words(prompt.updated_at) %> ago</td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<% if @prompts.empty? %>
+  <p class="meta" style="padding: 2rem; text-align: center;">
+    No prompts yet. <br>
+    Add YAML files to <code>db/prompts/</code> and run <code>RubyLLM::Prompts.seed!</code>,
+    or <%= link_to "create one", new_prompt_path %>.
+  </p>
+<% end %>

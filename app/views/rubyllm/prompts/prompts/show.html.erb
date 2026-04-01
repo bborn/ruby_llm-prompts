@@ -1,0 +1,23 @@
+<h2 class="mono"><%= @prompt.slug %></h2>
+<p class="meta">
+  <span class="version-badge version-active">v<%= @prompt.version %></span>
+  &middot; updated <%= time_ago_in_words(@prompt.updated_at) %> ago
+</p>
+
+<% if @prompt.expected_variables.any? %>
+  <p class="meta" style="margin-top: 0.5rem;">
+    Variables:
+    <span class="variables">
+      <% @prompt.expected_variables.each do |var| %>
+        <span class="variable-tag"><%= var %></span>
+      <% end %>
+    </span>
+  </p>
+<% end %>
+
+<div class="prompt-body"><%= @prompt.body %></div>
+
+<div class="actions">
+  <%= link_to "Edit", edit_prompt_path(@prompt.slug), class: "btn btn-primary" %>
+  <%= link_to "Version History", versions_prompt_path(@prompt.slug), class: "btn" %>
+</div>

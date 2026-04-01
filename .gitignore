@@ -1,0 +1,12 @@
+/.bundle/
+/Gemfile.lock
+/pkg/
+/tmp/
+test/dummy/db/*.sqlite3
+test/dummy/db/*.sqlite3-*
+test/dummy/log/
+test/dummy/storage/
+test/dummy/tmp/
+test/dummy/Gemfile.lock
+test/dummy/config/master.key
+test/dummy/config/credentials.yml.enc

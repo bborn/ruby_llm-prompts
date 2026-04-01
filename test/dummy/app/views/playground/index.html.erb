@@ -1,0 +1,18 @@
+<h1>Prompt Playground</h1>
+<p>Pick a prompt to test with a real LLM.</p>
+
+<% if ENV["OPENAI_API_KEY"].blank? %>
+  <p style="color: red; font-weight: bold;">
+    Set OPENAI_API_KEY to use the playground.<br>
+    <code>OPENAI_API_KEY=sk-... bin/rails server</code>
+  </p>
+<% end %>
+
+<ul>
+  <% @prompts.each do |prompt| %>
+    <li>
+      <a href="<%= playground_prompt_path(slug: prompt.slug) %>"><%= prompt.slug %></a>
+      <small>(v<%= prompt.version %>) — variables: <%= prompt.expected_variables.join(", ") %></small>
+    </li>
+  <% end %>
+</ul>

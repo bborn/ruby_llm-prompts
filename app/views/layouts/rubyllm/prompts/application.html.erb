@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RubyLLM Prompts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #fff;
+      --text: #1a1a1a;
+      --muted: #666;
+      --border: #e5e5e5;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --code-bg: #f5f5f5;
+      --radius: 6px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a;
+        --text: #e5e5e5;
+        --muted: #999;
+        --border: #333;
+        --code-bg: #2a2a2a;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header h1 a { color: var(--text); text-decoration: none; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn:hover { text-decoration: none; border-color: var(--muted); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-danger { color: var(--danger); border-color: var(--danger); }
+
+    .flash {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+    .flash-notice { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+    .flash-alert { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); }
+
+    .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.875rem; }
+
+    label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.875rem; }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.875rem;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    textarea { min-height: 300px; resize: vertical; }
+
+    .field { margin-bottom: 1rem; }
+
+    .variables {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .variable-tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+    }
+
+    .meta { color: var(--muted); font-size: 0.875rem; }
+
+    .prompt-body {
+      background: var(--code-bg);
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+      margin: 1rem 0;
+    }
+
+    .actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+
+    .version-badge {
+      display: inline-block;
+      padding: 0.1rem 0.4rem;
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .version-active { background: #dcfce7; color: var(--success); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><a href="<%= root_path %>">RubyLLM::Prompts</a></h1>
+    <%= link_to "New Prompt", new_prompt_path, class: "btn btn-primary" %>
+  </header>
+
+  <% if notice %>
+    <div class="flash flash-notice"><%= notice %></div>
+  <% end %>
+  <% if alert %>
+    <div class="flash flash-alert"><%= alert %></div>
+  <% end %>
+
+  <%= yield %>
+</body>
+</html>

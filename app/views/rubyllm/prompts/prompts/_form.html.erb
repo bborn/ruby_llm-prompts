@@ -1,0 +1,24 @@
+<%= form_with(model: prompt, url: url, method: method) do |f| %>
+  <% if prompt.errors.any? %>
+    <div class="flash flash-alert">
+      <% prompt.errors.full_messages.each do |msg| %>
+        <p><%= msg %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :slug %>
+    <%= f.text_field :slug, class: "mono", disabled: prompt.persisted? %>
+  </div>
+
+  <div class="field">
+    <%= f.label :body %>
+    <%= f.text_area :body, class: "mono", placeholder: "You are a helpful assistant for {{ user_name }}." %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit prompt.persisted? ? "Save New Version" : "Create Prompt", class: "btn btn-primary" %>
+    <%= link_to "Cancel", root_path, class: "btn" %>
+  </div>
+<% end %>

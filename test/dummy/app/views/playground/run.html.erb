@@ -1,0 +1,15 @@
+<h1>Result: <%= @prompt.slug %></h1>
+
+<h3>Rendered System Prompt</h3>
+<pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px;"><%= @rendered %></pre>
+
+<h3>User Message</h3>
+<pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px;"><%= @user_message %></pre>
+
+<h3>LLM Response</h3>
+<div style="background: #e8f5e9; padding: 1rem; border-radius: 4px; white-space: pre-wrap;"><%= @response.content %></div>
+
+<p style="margin-top: 1rem;">
+  <a href="<%= playground_prompt_path(slug: @prompt.slug) %>">Try again</a> |
+  <a href="<%= playground_index_path %>">Back to prompts</a>
+</p>
