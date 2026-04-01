@@ -222,6 +222,22 @@ prompt.new_version!(body: "...", metadata: ...) # create new version
 prompt.rollback!                                # restore previous version
 ```
 
+## Tracking LLM Usage by Prompt Version
+
+If you use [ruby_llm-instrumentation](https://github.com/sinaptia/ruby_llm-instrumentation), tag completions with the prompt slug and version:
+
+```ruby
+prompt = RubyLLM::Prompts.get("support/system")
+rendered = prompt.render(company: "Acme", name: "Bruno")
+
+RubyLLM::Instrumentation.with(prompt_slug: prompt.slug, prompt_version: prompt.version) do
+  chat.with_instructions(rendered)
+  chat.ask("I can't log in")
+end
+```
+
+This metadata flows into [ruby_llm-monitoring](https://github.com/sinaptia/ruby_llm-monitoring) events, so you can compare cost, latency, and error rates across prompt versions.
+
 ## Auditing
 
 The gem does not include audit logging. Add [PaperTrail](https://github.com/paper-trail-gem/paper_trail) to the `Prompt` model if you need change tracking:
