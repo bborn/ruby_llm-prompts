@@ -144,6 +144,64 @@
     }
 
     .version-active { background: #dcfce7; color: var(--success); }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .playground { margin-top: 1rem; }
+
+    .playground-output { margin-top: 1.5rem; }
+
+    .diff-cell { padding: 0.5rem 0.75rem; }
+
+    .diff-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .diff-label:first-child { margin-top: 0; }
+
+    .diff-block {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .diff-old {
+      background: #fef2f2;
+      color: var(--danger);
+      padding: 0.5rem;
+      border-radius: var(--radius);
+    }
+
+    .diff-new {
+      background: #f0fdf4;
+      color: var(--success);
+      padding: 0.5rem;
+      border-radius: var(--radius);
+    }
+
+    .diff-arrow {
+      text-align: center;
+      color: var(--muted);
+      padding: 0.15rem;
+      font-size: 0.75rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .diff-old { background: #3b1111; }
+      .diff-new { background: #113b11; }
+    }
   </style>
 </head>
 <body>

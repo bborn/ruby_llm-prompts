@@ -1,0 +1,44 @@
+<h2 class="mono"><%= @prompt.slug %></h2>
+<p class="meta">Playground &middot; v<%= @prompt.version %></p>
+
+<div class="playground">
+  <div class="playground-input">
+    <h3 class="section-label">Variables</h3>
+    <%= form_with(url: playground_prompt_path(@prompt.slug), method: :post, local: true) do |f| %>
+      <% if @variables.any? %>
+        <% @variables.each do |var| %>
+          <div class="field">
+            <%= label_tag "variables[#{var}]", var, class: "mono" %>
+            <%= text_field_tag "variables[#{var}]", params.dig(:variables, var), class: "mono" %>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="meta">This prompt has no variables.</p>
+      <% end %>
+
+      <div class="actions">
+        <%= f.submit "Render", class: "btn btn-primary" %>
+        <%= link_to "Back", prompt_path(@prompt.slug), class: "btn" %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @error %>
+    <div class="flash flash-alert" style="margin-top: 1rem;"><%= @error %></div>
+  <% end %>
+
+  <% if @result %>
+    <div class="playground-output">
+      <% if @result.system_message.present? %>
+        <h3 class="section-label">System Message</h3>
+        <div class="prompt-body"><%= @result.system_message %></div>
+      <% end %>
+
+      <h3 class="section-label">Rendered Body</h3>
+      <div class="prompt-body"><%= @result.body %></div>
+
+      <h3 class="section-label">Messages Array</h3>
+      <div class="prompt-body"><%= JSON.pretty_generate(@result.messages) %></div>
+    </div>
+  <% end %>
+</div>

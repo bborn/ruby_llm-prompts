@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record"
-require "liquid"
+require "liquid2"
 require "ruby_llm"
 require "zeitwerk"
 
@@ -34,6 +34,19 @@ module RubyLLM
 
       def variables(slug)
         get(slug).expected_variables
+      end
+
+      # Liquid2 environments — strict mode is per-environment, not per-render.
+      def strict_environment
+        @strict_environment ||= Liquid2::Environment.new(undefined: Liquid2::StrictUndefined)
+      end
+
+      def lax_environment
+        @lax_environment ||= Liquid2::Environment.new
+      end
+
+      def environment
+        strict_variables ? strict_environment : lax_environment
       end
     end
 

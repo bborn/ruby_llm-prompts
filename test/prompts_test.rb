@@ -18,7 +18,14 @@ class PromptsTest < Minitest::Test
 
   def test_render_shorthand
     RubyLLM::Prompts::Prompt.create!(slug: "greet", body: "Hi {{ name }}!", version: 1, active: true)
-    assert_equal "Hi Bruno!", RubyLLM::Prompts.render("greet", name: "Bruno")
+    result = RubyLLM::Prompts.render("greet", name: "Bruno")
+    assert_equal "Hi Bruno!", result.to_s
+  end
+
+  def test_render_shorthand_returns_rendered_prompt
+    RubyLLM::Prompts::Prompt.create!(slug: "greet", body: "Hi {{ name }}!", version: 1, active: true)
+    result = RubyLLM::Prompts.render("greet", name: "Bruno")
+    assert_instance_of RubyLLM::Prompts::Result, result
   end
 
   def test_variables_shorthand

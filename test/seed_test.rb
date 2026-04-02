@@ -13,6 +13,16 @@ class SeedTest < Minitest::Test
     end
   end
 
+  def test_seed_creates_prompts_with_system_message
+    with_prompt_files("greet" => {slug: "greet", body: "Hello", system_message: "Be nice."}) do |dir|
+      count = RubyLLM::Prompts.seed!(path: dir)
+      assert_equal 1, count
+
+      prompt = RubyLLM::Prompts.get("greet")
+      assert_equal "Be nice.", prompt.system_message
+    end
+  end
+
   def test_seed_updates_changed_prompts
     RubyLLM::Prompts::Prompt.create!(slug: "greet", body: "Old body", version: 1, active: true)
 
@@ -22,6 +32,19 @@ class SeedTest < Minitest::Test
 
       prompt = RubyLLM::Prompts.get("greet")
       assert_equal "New body", prompt.body
+      assert_equal 2, prompt.version
+    end
+  end
+
+  def test_seed_updates_when_system_message_changes
+    RubyLLM::Prompts::Prompt.create!(slug: "greet", body: "Hello", system_message: "Old", version: 1, active: true)
+
+    with_prompt_files("greet" => {slug: "greet", body: "Hello", system_message: "New"}) do |dir|
+      count = RubyLLM::Prompts.seed!(path: dir)
+      assert_equal 1, count
+
+      prompt = RubyLLM::Prompts.get("greet")
+      assert_equal "New", prompt.system_message
       assert_equal 2, prompt.version
     end
   end
@@ -51,6 +74,7 @@ class SeedTest < Minitest::Test
         File.write(file_path, {
           "slug" => data[:slug],
           "body" => data[:body],
+          "system_message" => data[:system_message],
           "metadata" => data[:metadata]
         }.compact.to_yaml)
       end

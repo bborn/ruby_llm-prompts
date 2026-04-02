@@ -2,7 +2,7 @@
 
 Database-backed prompt management for [RubyLLM](https://rubyllm.com). Store, version, and edit prompts without redeploying. Works transparently with RubyLLM agents and direct chat usage.
 
-Uses [Liquid](https://shopify.github.io/liquid/) templates — sandboxed, safe for runtime editing, with a clear variable interface.
+Uses [Liquid2](https://github.com/jg-rp/ruby-liquid2) templates — sandboxed, safe for runtime editing, with proper static analysis of template variables.
 
 ## Installation
 
@@ -33,7 +33,8 @@ Create a prompt:
 ```ruby
 RubyLLM::Prompts::Prompt.create!(
   slug: "support/system",
-  body: "You are a support agent for {{ company }}. The customer is {{ name }}.",
+  system_message: "You are a support agent for {{ company }}.",
+  body: "The customer is {{ name }}. Help them with their issue.",
   version: 1,
   active: true
 )
@@ -42,18 +43,68 @@ RubyLLM::Prompts::Prompt.create!(
 Render it:
 
 ```ruby
-RubyLLM::Prompts.render("support/system", company: "Acme", name: "Bruno")
-# => "You are a support agent for Acme. The customer is Bruno."
+rendered = RubyLLM::Prompts.render("support/system", company: "Acme", name: "Bruno")
+rendered.to_s            # => "The customer is Bruno. Help them with their issue."
+rendered.system_message  # => "You are a support agent for Acme."
+rendered.messages        # => [{ role: "system", content: "You are..." }, { role: "user", content: "The customer..." }]
 ```
 
 Use it with RubyLLM:
 
 ```ruby
-prompt = RubyLLM::Prompts.render("support/system", company: "Acme", name: "Bruno")
+rendered = RubyLLM::Prompts.render("support/system", company: "Acme", name: "Bruno")
 chat = RubyLLM.chat
-chat.with_instructions(prompt)
-chat.ask("I can't log in")
+chat.with_instructions(rendered.system_message)
+chat.ask(rendered)  # Result coerces to string automatically
 ```
+
+## Result
+
+`render` returns a `Result` object, not a plain string. It behaves like a string (via `to_s`/`to_str`) so existing code keeps working, but also provides structured access:
+
+```ruby
+rendered = RubyLLM::Prompts.render("support/system", name: "Bruno")
+
+rendered.to_s            # the rendered body as a string
+rendered.body            # same as to_s
+rendered.system_message  # rendered system message, or nil
+rendered.messages        # [{ role: "system", content: "..." }, { role: "user", content: "..." }]
+rendered.slug            # "support/system"
+rendered.version         # 2
+rendered.metadata        # { "author" => "bruno" }
+rendered.to_h            # everything as a hash
+```
+
+String coercion means `Result` works anywhere a string does:
+
+```ruby
+chat.ask(rendered)                   # works — to_str kicks in
+"Prompt: #{rendered}"                # works — interpolation
+rendered == "expected output"        # works — equality with strings
+```
+
+## System Messages
+
+Prompts can have a separate `system_message` for system/user separation:
+
+```ruby
+RubyLLM::Prompts::Prompt.create!(
+  slug: "assistant",
+  system_message: "You are a {{ role }}. Be concise.",
+  body: "Help {{ user_name }} with their request.",
+  version: 1,
+  active: true
+)
+```
+
+Both `system_message` and `body` support Liquid templates with the same variables. Variables are extracted from both fields:
+
+```ruby
+prompt = RubyLLM::Prompts.get("assistant")
+prompt.expected_variables  # => ["role", "user_name"]
+```
+
+The `system_message` is optional — prompts without one work exactly as before.
 
 ## Liquid Templates
 
@@ -71,6 +122,8 @@ This is a VIP customer. Prioritize their request.
 Empty strings, `"false"`, `nil`, and `false` are all falsy in conditionals. `"true"` and `true` are truthy. This is handled automatically — no surprises from string coercion.
 
 ## Introspect Variables
+
+`expected_variables` uses Liquid2's static analysis to extract only the variables your template actually needs — `{% assign %}` locals and `{% for %}` loop variables are automatically excluded.
 
 ```ruby
 prompt = RubyLLM::Prompts.get("support/system")
@@ -116,14 +169,15 @@ Store prompts as YAML files in `db/prompts/` and deploy them with your code:
 ```yaml
 # db/prompts/support/system.yml
 slug: support/system
-body: |
+system_message: |
   You are a support agent for {{ company }}.
-  The customer is {{ name }}.
+body: |
+  The customer is {{ name }}. Help them with their issue.
 metadata:
   description: "Customer support system prompt"
 ```
 
-Seed is idempotent — only creates a new version when the body or metadata changes:
+Seed is idempotent — only creates a new version when the body, system_message, or metadata changes:
 
 ```ruby
 RubyLLM::Prompts.seed!
@@ -171,9 +225,10 @@ end
 Mount the engine and visit `/prompts` to:
 
 - Browse all prompts with their variables
-- Create and edit prompts
-- View version history
+- Create and edit prompts (body + system message)
+- View version history with diffs between versions
 - Roll back to previous versions
+- **Playground** — test prompts with sample variables and see the rendered output, system message, and messages array
 
 ### Authentication
 
@@ -212,14 +267,20 @@ RubyLLM::Prompts.prompts_path = "db/prompts" # seed file directory (default: "db
 
 ```ruby
 RubyLLM::Prompts.get(slug)                    # find active prompt, raises PromptNotFoundError
-RubyLLM::Prompts.render(slug, variables)       # find + render in one call
+RubyLLM::Prompts.render(slug, variables)       # find + render, returns Result
 RubyLLM::Prompts.variables(slug)               # list expected variables
 RubyLLM::Prompts.seed!(path: "db/prompts")     # upsert from YAML files
 
-prompt.render(variables)                        # render with Liquid
-prompt.expected_variables                       # introspect template variables
-prompt.new_version!(body: "...", metadata: ...) # create new version
+prompt.render(variables)                        # render with Liquid, returns Result
+prompt.expected_variables                       # introspect template variables (body + system_message)
+prompt.new_version!(body: "...", system_message: "...", metadata: ...)
 prompt.rollback!                                # restore previous version
+
+rendered.to_s / rendered.body                   # rendered body text
+rendered.system_message                         # rendered system message (or nil)
+rendered.messages                               # [{ role: "system", content: "..." }, { role: "user", content: "..." }]
+rendered.to_h                                   # full hash with slug, version, messages, metadata
+rendered.slug / rendered.version / rendered.metadata
 ```
 
 ## Tracking Usage

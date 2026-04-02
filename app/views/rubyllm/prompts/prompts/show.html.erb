@@ -15,9 +15,16 @@
   </p>
 <% end %>
 
+<% if @prompt.system_message.present? %>
+  <h3 class="section-label">System Message</h3>
+  <div class="prompt-body"><%= @prompt.system_message %></div>
+<% end %>
+
+<h3 class="section-label">Body</h3>
 <div class="prompt-body"><%= @prompt.body %></div>
 
 <div class="actions">
   <%= link_to "Edit", edit_prompt_path(@prompt.slug), class: "btn btn-primary" %>
+  <%= link_to "Playground", playground_prompt_path(@prompt.slug), class: "btn" %>
   <%= link_to "Version History", versions_prompt_path(@prompt.slug), class: "btn" %>
 </div>

@@ -3,7 +3,7 @@
 module RubyLLM
   module Prompts
     class PromptsController < ApplicationController
-      before_action :set_prompt, only: [:show, :edit, :update, :versions, :rollback]
+      before_action :set_prompt, only: [:show, :edit, :update, :versions, :rollback, :playground, :execute_playground]
 
       def index
         @prompts = Prompt.active.order(:slug)
@@ -31,6 +31,7 @@ module RubyLLM
       def update
         new_version = @prompt.new_version!(
           body: prompt_params[:body],
+          system_message: prompt_params[:system_message],
           metadata: prompt_params[:metadata]
         )
         redirect_to prompt_path(new_version.slug), notice: "Prompt updated (v#{new_version.version})."
@@ -47,6 +48,21 @@ module RubyLLM
         redirect_to versions_prompt_path(@prompt.slug), alert: e.message
       end
 
+      def playground
+        @variables = @prompt.expected_variables
+        @result = nil
+      end
+
+      def execute_playground
+        @variables = @prompt.expected_variables
+        variable_values = params[:variables]&.to_unsafe_h || {}
+        @result = @prompt.render(variable_values)
+      rescue RubyLLM::Prompts::UndefinedVariableError => e
+        @error = e.message
+      ensure
+        render :playground
+      end
+
       private
 
       def set_prompt
@@ -56,7 +72,7 @@ module RubyLLM
       end
 
       def prompt_params
-        params.require(:prompt).permit(:slug, :body, :metadata)
+        params.require(:prompt).permit(:slug, :body, :system_message, :metadata)
       end
     end
   end

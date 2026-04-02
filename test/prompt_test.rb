@@ -4,7 +4,67 @@ class PromptTest < Minitest::Test
   def test_render_with_variables
     prompt = create_prompt(body: "Hello {{ name }}, welcome to {{ company }}.")
     result = prompt.render(name: "Bruno", company: "Acme")
-    assert_equal "Hello Bruno, welcome to Acme.", result
+    assert_equal "Hello Bruno, welcome to Acme.", result.to_s
+  end
+
+  def test_render_returns_rendered_prompt
+    prompt = create_prompt(slug: "test/one", body: "Hello {{ name }}.", version: 1)
+    result = prompt.render(name: "Bruno")
+
+    assert_instance_of RubyLLM::Prompts::Result, result
+    assert_equal "Hello Bruno.", result.body
+    assert_equal "test/one", result.slug
+    assert_equal 1, result.version
+  end
+
+  def test_render_with_system_message
+    prompt = create_prompt(body: "Help me with {{ task }}.", system_message: "You are a {{ role }}.")
+    result = prompt.render(task: "coding", role: "developer")
+
+    assert_equal "Help me with coding.", result.body
+    assert_equal "You are a developer.", result.system_message
+  end
+
+  def test_render_messages_with_system
+    prompt = create_prompt(body: "Hello", system_message: "Be helpful.")
+    result = prompt.render({})
+
+    messages = result.messages
+    assert_equal 2, messages.size
+    assert_equal "system", messages[0][:role]
+    assert_equal "Be helpful.", messages[0][:content]
+    assert_equal "user", messages[1][:role]
+    assert_equal "Hello", messages[1][:content]
+  end
+
+  def test_render_messages_without_system
+    prompt = create_prompt(body: "Hello")
+    result = prompt.render({})
+
+    messages = result.messages
+    assert_equal 1, messages.size
+    assert_equal "user", messages[0][:role]
+  end
+
+  def test_rendered_prompt_string_coercion
+    prompt = create_prompt(body: "Hello {{ name }}.")
+    result = prompt.render(name: "Bruno")
+
+    # Should work anywhere a string works
+    assert_equal "Hello Bruno.", result.to_s
+    assert_equal "Hello Bruno.", "#{result}"
+    assert_equal "Hello Bruno.", result
+  end
+
+  def test_rendered_prompt_to_h
+    prompt = create_prompt(slug: "test/prompt", body: "Hello", metadata: {"author" => "bruno"})
+    result = prompt.render({})
+    hash = result.to_h
+
+    assert_equal "test/prompt", hash[:slug]
+    assert_equal 1, hash[:version]
+    assert_equal "Hello", hash[:body]
+    assert_equal({"author" => "bruno"}, hash[:metadata])
   end
 
   def test_render_strict_raises_on_missing_variable
@@ -15,11 +75,19 @@ class PromptTest < Minitest::Test
     assert_match(/name/, error.message)
   end
 
+  def test_render_strict_raises_on_missing_system_message_variable
+    prompt = create_prompt(body: "Hello", system_message: "You are {{ role }}.")
+    error = assert_raises(RubyLLM::Prompts::UndefinedVariableError) do
+      prompt.render({})
+    end
+    assert_match(/role/, error.message)
+  end
+
   def test_render_lenient_mode
     RubyLLM::Prompts.strict_variables = false
     prompt = create_prompt(body: "Hello {{ name }}.")
     result = prompt.render({})
-    assert_equal "Hello .", result
+    assert_equal "Hello .", result.to_s
   end
 
   def test_expected_variables
@@ -29,10 +97,36 @@ class PromptTest < Minitest::Test
     assert_includes prompt.expected_variables, "vip"
   end
 
+  def test_expected_variables_includes_system_message_vars
+    prompt = create_prompt(body: "{{ name }}", system_message: "You are {{ role }}.")
+    vars = prompt.expected_variables
+    assert_includes vars, "name"
+    assert_includes vars, "role"
+  end
+
+  def test_expected_variables_deduplicates_across_body_and_system
+    prompt = create_prompt(body: "{{ name }}", system_message: "Greet {{ name }}.")
+    assert_equal 1, prompt.expected_variables.count("name")
+  end
+
   def test_expected_variables_excludes_liquid_keywords
     prompt = create_prompt(body: "{% if active %}yes{% endif %}")
     refute_includes prompt.expected_variables, "if"
     refute_includes prompt.expected_variables, "endif"
+  end
+
+  def test_expected_variables_excludes_assign_vars
+    prompt = create_prompt(body: "{% assign greeting = 'hello' %}{{ greeting }} {{ name }}")
+    vars = prompt.expected_variables
+    assert_includes vars, "name"
+    refute_includes vars, "greeting"
+  end
+
+  def test_expected_variables_excludes_loop_vars
+    prompt = create_prompt(body: "{% for item in items %}{{ item }}{% endfor %}")
+    vars = prompt.expected_variables
+    assert_includes vars, "items"
+    refute_includes vars, "item"
   end
 
   def test_new_version
@@ -42,6 +136,27 @@ class PromptTest < Minitest::Test
     assert_equal 2, v2.version
     assert v2.active?
     refute prompt.reload.active?
+  end
+
+  def test_new_version_preserves_system_message
+    prompt = create_prompt(body: "v1", system_message: "Be helpful.")
+    v2 = prompt.new_version!(body: "v2")
+
+    assert_equal "Be helpful.", v2.system_message
+  end
+
+  def test_new_version_updates_system_message
+    prompt = create_prompt(body: "v1", system_message: "old")
+    v2 = prompt.new_version!(body: "v1", system_message: "new")
+
+    assert_equal "new", v2.system_message
+  end
+
+  def test_new_version_clears_system_message
+    prompt = create_prompt(body: "v1", system_message: "old")
+    v2 = prompt.new_version!(body: "v1", system_message: nil)
+
+    assert_nil v2.system_message
   end
 
   def test_new_version_increments_from_max
@@ -71,32 +186,32 @@ class PromptTest < Minitest::Test
 
   def test_boolean_true_string_is_truthy
     prompt = create_prompt(body: "{% if vip %}VIP{% endif %}")
-    assert_equal "VIP", prompt.render(vip: "true")
+    assert_equal "VIP", prompt.render(vip: "true").to_s
   end
 
   def test_boolean_false_string_is_falsy
     prompt = create_prompt(body: "{% if vip %}VIP{% endif %}")
-    assert_equal "", prompt.render(vip: "false")
+    assert_equal "", prompt.render(vip: "false").to_s
   end
 
   def test_boolean_true_value_is_truthy
     prompt = create_prompt(body: "{% if vip %}VIP{% endif %}")
-    assert_equal "VIP", prompt.render(vip: true)
+    assert_equal "VIP", prompt.render(vip: true).to_s
   end
 
   def test_boolean_false_value_is_falsy
     prompt = create_prompt(body: "{% if vip %}VIP{% endif %}")
-    assert_equal "", prompt.render(vip: false)
+    assert_equal "", prompt.render(vip: false).to_s
   end
 
   def test_empty_string_is_falsy
     prompt = create_prompt(body: "{% if vip %}VIP{% endif %}")
-    assert_equal "", prompt.render(vip: "")
+    assert_equal "", prompt.render(vip: "").to_s
   end
 
   def test_nil_is_falsy
     prompt = create_prompt(body: "{% if vip %}VIP{% endif %}")
-    assert_equal "", prompt.render(vip: nil)
+    assert_equal "", prompt.render(vip: nil).to_s
   end
 
   def test_render_emits_notification
@@ -137,10 +252,11 @@ class PromptTest < Minitest::Test
 
   private
 
-  def create_prompt(slug: "test/instructions", body: "Hello", version: 1, active: true, metadata: nil)
+  def create_prompt(slug: "test/instructions", body: "Hello", version: 1, active: true, metadata: nil, system_message: nil)
     RubyLLM::Prompts::Prompt.create!(
       slug: slug,
       body: body,
+      system_message: system_message,
       version: version,
       active: active,
       metadata: metadata
