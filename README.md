@@ -162,29 +162,6 @@ prompt.rollback!
 # => #<Prompt slug: "support/system", version: 1, active: true>
 ```
 
-## Seed Files
-
-Store prompts as YAML files in `db/prompts/` and deploy them with your code:
-
-```yaml
-# db/prompts/support/system.yml
-slug: support/system
-system_message: |
-  You are a support agent for {{ company }}.
-body: |
-  The customer is {{ name }}. Help them with their issue.
-metadata:
-  description: "Customer support system prompt"
-```
-
-Seed is idempotent — only creates a new version when the body, system_message, or metadata changes:
-
-```ruby
-RubyLLM::Prompts.seed!
-```
-
-The install generator adds `RubyLLM::Prompts.seed!` to `db/seeds.rb`.
-
 ## RubyLLM Agent Integration
 
 If you use [RubyLLM agents](https://rubyllm.com/agents/), the gem hooks in automatically. When an agent renders a prompt, it checks the database first and falls back to the filesystem.
@@ -250,7 +227,7 @@ mount RubyLLM::Prompts::Engine, at: "/prompts",
 Designed for gradual adoption:
 
 1. **Day 1** — Add the gem, run the generator, migrate. Everything still uses your existing ERB files. Zero behavior change.
-2. **Day 2** — Move one prompt to the database (via admin UI or seed file). That prompt now uses Liquid from the DB. Everything else stays on ERB files.
+2. **Day 2** — Move one prompt to the database (via admin UI). That prompt now uses Liquid from the DB. Everything else stays on ERB files.
 3. **Gradually** — Migrate prompts as needed. Database always takes priority over filesystem.
 
 The slug convention (`agent_name/prompt_name`) maps 1:1 to the filesystem convention (`app/prompts/agent_name/prompt_name.txt.erb`).
@@ -260,7 +237,6 @@ The slug convention (`agent_name/prompt_name`) maps 1:1 to the filesystem conven
 ```ruby
 # config/initializers/ruby_llm_prompts.rb
 RubyLLM::Prompts.strict_variables = true   # raise on missing variables (default: true)
-RubyLLM::Prompts.prompts_path = "db/prompts" # seed file directory (default: "db/prompts")
 ```
 
 ## API Reference
@@ -269,7 +245,6 @@ RubyLLM::Prompts.prompts_path = "db/prompts" # seed file directory (default: "db
 RubyLLM::Prompts.get(slug)                    # find active prompt, raises PromptNotFoundError
 RubyLLM::Prompts.render(slug, variables)       # find + render, returns Result
 RubyLLM::Prompts.variables(slug)               # list expected variables
-RubyLLM::Prompts.seed!(path: "db/prompts")     # upsert from YAML files
 
 prompt.render(variables)                        # render with Liquid, returns Result
 prompt.variables                       # introspect template variables (body + system_message)
