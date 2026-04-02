@@ -4,11 +4,11 @@
   &middot; updated <%= time_ago_in_words(@prompt.updated_at) %> ago
 </p>
 
-<% if @prompt.expected_variables.any? %>
+<% if @prompt.variables.any? %>
   <p class="meta" style="margin-top: 0.5rem;">
     Variables:
     <span class="variables">
-      <% @prompt.expected_variables.each do |var| %>
+      <% @prompt.variables.each do |var| %>
         <span class="variable-tag"><%= var %></span>
       <% end %>
     </span>

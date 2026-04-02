@@ -49,12 +49,12 @@ module RubyLLM
       end
 
       def playground
-        @variables = @prompt.expected_variables
+        @variables = @prompt.variables
         @result = nil
       end
 
       def execute_playground
-        @variables = @prompt.expected_variables
+        @variables = @prompt.variables
         variable_values = params[:variables]&.to_unsafe_h || {}
         @result = @prompt.render(variable_values)
       rescue RubyLLM::Prompts::UndefinedVariableError => e

@@ -28,7 +28,7 @@ module RubyLLM
         )
       end
 
-      def expected_variables
+      def variables
         sources = [body, system_message].compact
         sources.flat_map { |src|
           env = RubyLLM::Prompts.environment
@@ -75,7 +75,7 @@ module RubyLLM
         template = env.parse(template_string)
         template.render(coerced_variables)
       rescue Liquid2::UndefinedError => e
-        raise UndefinedVariableError, "#{e.message} in prompt '#{slug}' (v#{version}). Expected variables: #{expected_variables.join(", ")}"
+        raise UndefinedVariableError, "#{e.message} in prompt '#{slug}' (v#{version}). Expected variables: #{variables.join(", ")}"
       end
 
       # Coerce variable values for Liquid compatibility.

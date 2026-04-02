@@ -12,7 +12,7 @@
   <% @prompts.each do |prompt| %>
     <li>
       <a href="<%= playground_prompt_path(slug: prompt.slug) %>"><%= prompt.slug %></a>
-      <small>(v<%= prompt.version %>) — variables: <%= prompt.expected_variables.join(", ") %></small>
+      <small>(v<%= prompt.version %>) — variables: <%= prompt.variables.join(", ") %></small>
     </li>
   <% end %>
 </ul>

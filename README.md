@@ -101,7 +101,7 @@ Both `system_message` and `body` support Liquid templates with the same variable
 
 ```ruby
 prompt = RubyLLM::Prompts.get("assistant")
-prompt.expected_variables  # => ["role", "user_name"]
+prompt.variables  # => ["role", "user_name"]
 ```
 
 The `system_message` is optional — prompts without one work exactly as before.
@@ -123,11 +123,11 @@ Empty strings, `"false"`, `nil`, and `false` are all falsy in conditionals. `"tr
 
 ## Introspect Variables
 
-`expected_variables` uses Liquid2's static analysis to extract only the variables your template actually needs — `{% assign %}` locals and `{% for %}` loop variables are automatically excluded.
+`variables` uses Liquid2's static analysis to extract only the variables your template actually needs — `{% assign %}` locals and `{% for %}` loop variables are automatically excluded.
 
 ```ruby
 prompt = RubyLLM::Prompts.get("support/system")
-prompt.expected_variables
+prompt.variables
 # => ["company", "name", "vip"]
 ```
 
@@ -272,7 +272,7 @@ RubyLLM::Prompts.variables(slug)               # list expected variables
 RubyLLM::Prompts.seed!(path: "db/prompts")     # upsert from YAML files
 
 prompt.render(variables)                        # render with Liquid, returns Result
-prompt.expected_variables                       # introspect template variables (body + system_message)
+prompt.variables                       # introspect template variables (body + system_message)
 prompt.new_version!(body: "...", system_message: "...", metadata: ...)
 prompt.rollback!                                # restore previous version
 
