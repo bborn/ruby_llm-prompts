@@ -11,7 +11,7 @@
     </tr>
   </thead>
   <tbody>
-    <% @versions.each do |version| %>
+    <% @versions.each_with_index do |version, i| %>
       <tr>
         <td>v<%= version.version %></td>
         <td>
@@ -28,6 +28,33 @@
           <% end %>
         </td>
       </tr>
+      <% previous = @versions[i + 1] %>
+      <% if previous %>
+        <% body_changed = version.body != previous.body %>
+        <% system_changed = version.system_message != previous.system_message %>
+        <% if body_changed || system_changed %>
+          <tr>
+            <td colspan="4" class="diff-cell">
+              <% if system_changed %>
+                <div class="diff-label">System message changed:</div>
+                <div class="diff-block">
+                  <div class="diff-old"><%= previous.system_message %></div>
+                  <div class="diff-arrow">&darr;</div>
+                  <div class="diff-new"><%= version.system_message %></div>
+                </div>
+              <% end %>
+              <% if body_changed %>
+                <div class="diff-label">Body changed:</div>
+                <div class="diff-block">
+                  <div class="diff-old"><%= previous.body %></div>
+                  <div class="diff-arrow">&darr;</div>
+                  <div class="diff-new"><%= version.body %></div>
+                </div>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
     <% end %>
   </tbody>
 </table>

@@ -5,6 +5,8 @@ RubyLLM::Prompts::Engine.routes.draw do
     member do
       get :versions
       post :rollback
+      get :playground
+      post :playground, action: :execute_playground
     end
   end
 end

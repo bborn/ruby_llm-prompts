@@ -13,6 +13,11 @@
   </div>
 
   <div class="field">
+    <%= f.label :system_message, "System Message (optional)" %>
+    <%= f.text_area :system_message, class: "mono", rows: 4, placeholder: "You are a helpful assistant." %>
+  </div>
+
+  <div class="field">
     <%= f.label :body %>
     <%= f.text_area :body, class: "mono", placeholder: "You are a helpful assistant for {{ user_name }}." %>
   </div>

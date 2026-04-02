@@ -17,6 +17,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_000001) do
     t.datetime "created_at", null: false
     t.json "metadata"
     t.string "slug", null: false
+    t.text "system_message"
     t.datetime "updated_at", null: false
     t.integer "version", default: 1, null: false
     t.index ["slug", "active"], name: "index_ruby_llm_prompts_on_slug_and_active"

@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir["*.{md,txt}", "{app,config,db,lib}/**/*"]
 
   spec.add_dependency "activerecord", ">= 7.0"
-  spec.add_dependency "liquid", ">= 5.0"
+  spec.add_dependency "liquid2", ">= 0.1"
   spec.add_dependency "ruby_llm", ">= 1.0"
   spec.add_dependency "zeitwerk", ">= 2.0"
 end

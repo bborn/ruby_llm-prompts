@@ -8,7 +8,7 @@ class RenderableTest < Minitest::Test
     agent = build_agent("test_agent")
 
     result = agent.render_prompt(:instructions, name: "Bruno")
-    assert_equal "Hello Bruno!", result
+    assert_equal "Hello Bruno!", result.to_s
   end
 
   def test_falls_back_to_erb_file
@@ -42,7 +42,7 @@ class RenderableTest < Minitest::Test
 
     # Even if a file exists, DB should win
     result = agent.render_prompt(:instructions, name: "Bruno")
-    assert_equal "DB version: Bruno", result
+    assert_equal "DB version: Bruno", result.to_s
   end
 
   def test_context_variables_merged
@@ -52,7 +52,7 @@ class RenderableTest < Minitest::Test
     agent.define_singleton_method(:context_variables) { {company: "Acme"} }
 
     result = agent.render_prompt(:instructions, name: "Bruno")
-    assert_equal "Bruno at Acme", result
+    assert_equal "Bruno at Acme", result.to_s
   end
 
   private
