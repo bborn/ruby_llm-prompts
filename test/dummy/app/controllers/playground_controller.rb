@@ -5,14 +5,14 @@ class PlaygroundController < ApplicationController
 
   def show
     @prompt = RubyLLM::Prompts::Prompt.active.find_by!(slug: params[:slug])
-    @variables = @prompt.expected_variables
+    @variables = @prompt.variables
     @values = {}
     @variables.each { |v| @values[v] = params[v] || "" }
   end
 
   def run
     @prompt = RubyLLM::Prompts::Prompt.active.find_by!(slug: params[:slug])
-    @variables = @prompt.expected_variables
+    @variables = @prompt.variables
     @values = params.permit(*@variables).to_h
 
     @rendered = @prompt.render(@values)

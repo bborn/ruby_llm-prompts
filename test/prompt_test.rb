@@ -90,41 +90,41 @@ class PromptTest < Minitest::Test
     assert_equal "Hello .", result.to_s
   end
 
-  def test_expected_variables
+  def test_variables
     prompt = create_prompt(body: "{{ first_name }} {{ last_name }} {% if vip %}VIP{% endif %}")
-    assert_includes prompt.expected_variables, "first_name"
-    assert_includes prompt.expected_variables, "last_name"
-    assert_includes prompt.expected_variables, "vip"
+    assert_includes prompt.variables, "first_name"
+    assert_includes prompt.variables, "last_name"
+    assert_includes prompt.variables, "vip"
   end
 
-  def test_expected_variables_includes_system_message_vars
+  def test_variables_includes_system_message_vars
     prompt = create_prompt(body: "{{ name }}", system_message: "You are {{ role }}.")
-    vars = prompt.expected_variables
+    vars = prompt.variables
     assert_includes vars, "name"
     assert_includes vars, "role"
   end
 
-  def test_expected_variables_deduplicates_across_body_and_system
+  def test_variables_deduplicates_across_body_and_system
     prompt = create_prompt(body: "{{ name }}", system_message: "Greet {{ name }}.")
-    assert_equal 1, prompt.expected_variables.count("name")
+    assert_equal 1, prompt.variables.count("name")
   end
 
-  def test_expected_variables_excludes_liquid_keywords
+  def test_variables_excludes_liquid_keywords
     prompt = create_prompt(body: "{% if active %}yes{% endif %}")
-    refute_includes prompt.expected_variables, "if"
-    refute_includes prompt.expected_variables, "endif"
+    refute_includes prompt.variables, "if"
+    refute_includes prompt.variables, "endif"
   end
 
-  def test_expected_variables_excludes_assign_vars
+  def test_variables_excludes_assign_vars
     prompt = create_prompt(body: "{% assign greeting = 'hello' %}{{ greeting }} {{ name }}")
-    vars = prompt.expected_variables
+    vars = prompt.variables
     assert_includes vars, "name"
     refute_includes vars, "greeting"
   end
 
-  def test_expected_variables_excludes_loop_vars
+  def test_variables_excludes_loop_vars
     prompt = create_prompt(body: "{% for item in items %}{{ item }}{% endfor %}")
-    vars = prompt.expected_variables
+    vars = prompt.variables
     assert_includes vars, "items"
     refute_includes vars, "item"
   end

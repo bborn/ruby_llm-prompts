@@ -33,7 +33,7 @@ module RubyLLM
       end
 
       def variables(slug)
-        get(slug).expected_variables
+        get(slug).variables
       end
 
       # Liquid2 environments — strict mode is per-environment, not per-render.

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git checkout:*)",
+      "Bash(bundle exec:*)",
+      "Bash(git branch:*)",
+      "Bash(sqlite3:*)",
+      "WebSearch",
+      "WebFetch(domain:python.langchain.com)",
+      "WebFetch(domain:js.langchain.com)",
+      "WebFetch(domain:reference.langchain.com)",
+      "WebFetch(domain:api.python.langchain.com)",
+      "WebFetch(domain:www.rubydoc.info)",
+      "Bash(bundle install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "WebFetch(domain:jg-rp.github.io)"
+    ]
+  }
+}
