@@ -16,7 +16,7 @@ module RubyLLM
     class UndefinedVariableError < Error; end
 
     class << self
-      attr_accessor :strict_variables, :prompts_path
+      attr_accessor :strict_variables
 
       def get(slug)
         Prompt.active.find_by!(slug: slug)
@@ -26,10 +26,6 @@ module RubyLLM
 
       def render(slug, variables = {})
         get(slug).render(variables)
-      end
-
-      def seed!(path: nil)
-        Seed.call(path: path || prompts_path || "db/prompts")
       end
 
       def variables(slug)
@@ -51,7 +47,6 @@ module RubyLLM
     end
 
     self.strict_variables = true
-    self.prompts_path = nil
   end
 end
 
