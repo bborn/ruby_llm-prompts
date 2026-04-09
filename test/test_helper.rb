@@ -30,5 +30,6 @@ class Minitest::Test
   def setup
     RubyLLM::Prompts::Prompt.delete_all
     RubyLLM::Prompts.strict_variables = true
+    RubyLLM::Prompts.prompts_path = nil
   end
 end

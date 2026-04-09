@@ -34,4 +34,60 @@ class PromptsTest < Minitest::Test
     assert_includes vars, "name"
     assert_includes vars, "company"
   end
+
+  # --- Filesystem fallback ---
+
+  def test_render_falls_back_to_filesystem
+    RubyLLM::Prompts.prompts_path = File.expand_path("fixtures/prompts", __dir__)
+    result = RubyLLM::Prompts.render("greeting", name: "Bruno", company: "Acme")
+
+    assert_instance_of RubyLLM::Prompts::Result, result
+    assert_equal "Hello Bruno, welcome to Acme.", result.to_s
+    assert_equal "greeting", result.slug
+    assert_nil result.version
+  end
+
+  def test_render_filesystem_with_conditionals
+    RubyLLM::Prompts.prompts_path = File.expand_path("fixtures/prompts", __dir__)
+    result = RubyLLM::Prompts.render("conditional", name: "Bruno", brand_color: "#FF0000")
+
+    assert_includes result.to_s, "#FF0000"
+  end
+
+  def test_render_filesystem_conditional_excludes_when_nil
+    RubyLLM::Prompts.prompts_path = File.expand_path("fixtures/prompts", __dir__)
+    result = RubyLLM::Prompts.render("conditional", name: "Bruno", brand_color: nil)
+
+    refute_includes result.to_s, "Brand color"
+  end
+
+  def test_render_filesystem_nested_slug
+    RubyLLM::Prompts.prompts_path = File.expand_path("fixtures/prompts", __dir__)
+    result = RubyLLM::Prompts.render("nested/deep", topic: "testing")
+
+    assert_equal "Nested prompt for testing.", result.to_s
+  end
+
+  def test_render_db_overrides_filesystem
+    RubyLLM::Prompts.prompts_path = File.expand_path("fixtures/prompts", __dir__)
+    RubyLLM::Prompts::Prompt.create!(slug: "greeting", body: "DB says hi {{ name }}.", version: 1, active: true)
+
+    result = RubyLLM::Prompts.render("greeting", name: "Bruno")
+    assert_equal "DB says hi Bruno.", result.to_s
+    assert_equal 1, result.version
+  end
+
+  def test_render_raises_when_not_in_db_or_filesystem
+    RubyLLM::Prompts.prompts_path = File.expand_path("fixtures/prompts", __dir__)
+    assert_raises(RubyLLM::Prompts::PromptNotFoundError) do
+      RubyLLM::Prompts.render("totally/missing")
+    end
+  end
+
+  def test_render_raises_when_no_prompts_path_configured
+    RubyLLM::Prompts.prompts_path = nil
+    assert_raises(RubyLLM::Prompts::PromptNotFoundError) do
+      RubyLLM::Prompts.render("greeting", name: "Bruno")
+    end
+  end
 end
