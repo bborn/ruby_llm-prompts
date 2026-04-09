@@ -30,10 +30,25 @@ module RubyLLM
 
       def variables
         sources = [body, system_message].compact
+
+        # Collect variables that are locally defined (not user-supplied)
+        local_vars = Set.new
+        sources.each do |src|
+          # {% assign var = ... %} — var is local
+          local_vars.merge(src.scan(/\{%[\s-]*assign\s+(\w+)/).flatten)
+          # {% for item in collection %} — item is local
+          local_vars.merge(src.scan(/\{%[\s-]*for\s+(\w+)\s+in\s/).flatten)
+        end
+
         sources.flat_map { |src|
-          env = RubyLLM::Prompts.environment
-          env.parse(src).global_variables
-        }.uniq
+          # {{ variable }} references
+          output_vars = src.scan(/\{\{[\s-]*(\w+)/).flatten
+          # {% if var %}, {% unless var %} — condition variables
+          condition_vars = src.scan(/\{%[\s-]*(?:if|unless|elsif)\s+(\w+)/).flatten
+          # {% for item in collection %} — collection is the user variable
+          for_collection_vars = src.scan(/\{%[\s-]*for\s+\w+\s+in\s+(\w+)/).flatten
+          (output_vars + condition_vars + for_collection_vars)
+        }.uniq - local_vars.to_a
       end
 
       def new_version!(attrs = {})
@@ -71,15 +86,18 @@ module RubyLLM
       def render_template(template_string, coerced_variables)
         return nil if template_string.blank?
 
-        env = RubyLLM::Prompts.environment
-        template = env.parse(template_string)
-        template.render(coerced_variables)
-      rescue Liquid2::UndefinedError => e
+        template = Liquid::Template.parse(template_string)
+        if RubyLLM::Prompts.strict_variables
+          template.render!(coerced_variables, strict_variables: true)
+        else
+          template.render(coerced_variables)
+        end
+      rescue Liquid::UndefinedVariable => e
         raise UndefinedVariableError, "#{e.message} in prompt '#{slug}' (v#{version}). Expected variables: #{variables.join(", ")}"
       end
 
       # Coerce variable values for Liquid compatibility.
-      # - Stringify keys (Liquid2 requires string keys)
+      # - Stringify keys (Liquid requires string keys)
       # - Convert "true"/"false" strings to booleans
       # - Convert empty strings to nil (so {% if var %} works intuitively)
       def coerce_variables(variables)
